@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: [
     'https://*.csb.app', // Allow any subdomain of csb.app over HTTPS
+    'http://*.csb.app', // Add HTTP wildcard
+    'https://npfsvl-3000.csb.app', // Add specific origin from error
     // You can add other specific origins if needed, e.g., 'http://localhost:3000'
   ],
 };
