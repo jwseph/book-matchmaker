@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  /* LessWrong-inspired Light Mode */
+  --color-lw-bg: #F9FAFB;
+  --color-lw-text: #1F2937;
+  --color-lw-link: #2563EB;
+  --color-lw-link-hover: #1D4ED8;
+  --color-lw-border: #E5E7EB;
+  --color-lw-muted-text: #6B7280;
+  --color-lw-subtle-bg: #FFFFFF;
+
+  /* LessWrong-inspired Dark Mode */
+  --color-lw-dark-bg: #111827;
+  --color-lw-dark-text: #D1D5DB;
+  --color-lw-dark-link: #3B82F6;
+  --color-lw-dark-link-hover: #60A5FA;
+  --color-lw-dark-border: #374151;
+  --color-lw-dark-muted-text: #9CA3AF;
+  --color-lw-dark-subtle-bg: #1F2937;
+}
+
+body {
+  /* font-family: var(--font-serif); /* Set default to serif from Tailwind config */
+  /* background-color: theme('colors.cream'); /* Light mode background */
+  /* color: theme('colors.ink'); /* Light mode text */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode styles are handled by Tailwind's dark: prefix and app/layout.tsx */
+
+/* 
+  Base font, background, and text colors are now primarily managed 
+  by app/layout.tsx and tailwind.config.js for better integration 
+  with Next.js font optimization and Tailwind's dark mode. 
+*/
