@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import ResultsDisplay from '@/app/components/ResultsDisplay';
@@ -9,57 +9,93 @@ import { ResultsPageData, ErrorState } from '@/app/types';
 export default function ResultsPage() {
   const params = useParams();
   const router = useRouter();
-  const resultsId = params.id as string;
 
   const [results, setResults] = useState<ResultsPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ErrorState | null>(null);
-
-  useEffect(() => {
-    if (resultsId) {
-      const fetchResults = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const response = await axios.get<ResultsPageData>(`/api/recommendations?resultsId=${resultsId}`); 
-          if (response.data && 
-              response.data.likelyToEnjoy && typeof response.data.likelyToEnjoy.overallStatement === 'string' && Array.isArray(response.data.likelyToEnjoy.books) &&
-              response.data.differentTaste && typeof response.data.differentTaste.overallStatement === 'string' && Array.isArray(response.data.differentTaste.books)
-          ) {
-            setResults(response.data);
-          } else {
-            console.error("Invalid results format from server. Expected overallStatement and books array.", response.data);
-            setError({ message: 'Invalid results format from server.', action: 'Go Home', type: 'application_error' });
-          }
-        } catch (err) {
-          console.error('Error fetching results:', err);
-          let errorMessage = 'Could not load your results. They might have expired or the link is invalid.';
-          if (axios.isAxiosError(err) && err.response?.status === 404) {
-            errorMessage = 'These results could not be found. Perhaps the link is old or incorrect.';
-          }
-          setError({ message: errorMessage, action: 'Try Quiz Again', type: 'fetch_error' });
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchResults();
-    } else {
-      // Should not happen if route is matched correctly, but good to handle
-      setIsLoading(false);
-      setError({ message: 'No results ID provided.', action: 'Go Home', type: 'application_error' });
-    }
-  }, [resultsId]);
+  const fetchingIdRef = useRef<string | null>(null);
 
   const handleReset = () => {
-    router.push('/'); // Navigate to home/quiz page
+    router.push('/');
   };
   
   const handleErrorAction = () => {
-    if (error?.action === 'Try Quiz Again' || error?.action === 'Go Home') {
+    if (error?.action === 'Retake Quiz' || error?.action === 'Try Quiz Again' || error?.action === 'Go Home') {
       router.push('/');
+    } else if (error?.action === 'Retry') {
+      if (params.id) {
+        setResults(null);
+        setError(null);
+        router.push('/');
+      }
     }
-    // Potentially other actions later
   };
+
+  useEffect(() => {
+    const newResultsId = params.id as string;
+
+    if (!newResultsId) {
+      setResults(null);
+      setError(null);
+      setIsLoading(false);
+      fetchingIdRef.current = null;
+      return;
+    }
+
+    if (results && results.resultsId === newResultsId) {
+      if (isLoading) {
+        setIsLoading(false);
+      }
+      if (fetchingIdRef.current === newResultsId) {
+          fetchingIdRef.current = null;
+      }
+      return;
+    }
+
+    if (fetchingIdRef.current === newResultsId) {
+      if(!isLoading) setIsLoading(true);
+      return;
+    }
+
+    fetchingIdRef.current = newResultsId;
+    setIsLoading(true);
+    setResults(null);
+    setError(null);
+
+    const fetchNewData = async () => {
+      try {
+        const response = await axios.get<ResultsPageData>(`/api/recommendations?resultsId=${newResultsId}`);
+        if (fetchingIdRef.current === newResultsId) {
+          setResults(response.data);
+        }
+      } catch (err: any) {
+        if (fetchingIdRef.current === newResultsId) {
+          let errMessage = 'Failed to load recommendations. Please try again.';
+          let errAction: 'Retry' | 'Retake Quiz' = 'Retry';
+          if (axios.isAxiosError(err) && err.response?.status === 404) {
+            errMessage = 'These recommendations could not be found. They may have expired or the link is invalid.';
+            errAction = 'Retake Quiz';
+          } else if (err.response?.data?.error) {
+            errMessage = err.response.data.error;
+          }
+          setError({ message: errMessage, action: errAction, type: 'network' });
+        }
+      } finally {
+        if (fetchingIdRef.current === newResultsId) {
+          setIsLoading(false);
+          fetchingIdRef.current = null;
+        }
+      }
+    };
+
+    fetchNewData();
+
+    return () => {
+      if (fetchingIdRef.current === newResultsId) {
+        fetchingIdRef.current = null;
+      }
+    };
+  }, [params.id]);
 
   if (isLoading) {
     return (
@@ -95,7 +131,6 @@ export default function ResultsPage() {
   }
 
   if (!results) {
-    // This case should ideally be covered by isLoading or error states
     return <div className="min-h-screen flex items-center justify-center text-lw-muted-text dark:text-lw-dark-muted-text">No results to display.</div>;
   }
 

@@ -54,6 +54,15 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
         ? selectedOptions.length === 0
         : true; // Should not be relevant if button isn't shown for single MCQ
 
+  const handleFrqKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault(); // Prevent newline on Enter
+      if (frqAnswer.trim() !== '') {
+        handleSubmit();
+      }
+    }
+  };
+
   return (
     // Removed outer border/bg/shadow from this div, it will inherit from Quiz.tsx container
     <div>
@@ -93,6 +102,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
           <textarea
             value={frqAnswer}
             onChange={e => setFrqAnswer(e.target.value)}
+            onKeyDown={handleFrqKeyDown}
             rows={4}
             className="font-sans block w-full p-3 border-lw-border dark:border-lw-dark-border rounded-md shadow-sm focus:ring-lw-link dark:focus:ring-lw-dark-link focus:border-lw-link dark:focus:border-lw-dark-link bg-lw-subtle-bg dark:bg-lw-dark-subtle-bg text-lw-text dark:text-lw-dark-text placeholder-lw-muted-text dark:placeholder-lw-dark-muted-text"
             placeholder={question.placeholder || "Spill the tea! What's on your mind? (e.g., 'Loved the way Dune made giant worms kinda cool', or 'Hated Twilight, too sparkly')"}

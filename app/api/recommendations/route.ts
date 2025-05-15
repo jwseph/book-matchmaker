@@ -60,6 +60,16 @@ function formatStudentResponses(
     .join('\\n\\n');
 }
 
+// Helper function to shuffle an array (Fisher-Yates shuffle)
+function shuffleArray<T>(array: T[]): T[] {
+  const newArray = [...array]; // Create a shallow copy to avoid modifying the original
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+  }
+  return newArray;
+}
+
 interface BookForReasoning {
   title: string;
   author: string;
@@ -259,8 +269,11 @@ export async function POST(request: NextRequest) {
 
     // Prepare data for OpenAI
     const formattedStudentResponses = formatStudentResponses(studentQuestions, studentAnswers);
+    
+    // Shuffle the books before creating the list for OpenAI
+    const shuffledBooks = shuffleArray(allBooks);
     // Format for token efficiency: "TITLE by AUTHOR"
-    const bookListForOpenAI = allBooks.map(book => `${book.title} by ${book.author}`);
+    const bookListForOpenAI = shuffledBooks.map(book => `${book.title} by ${book.author}`);
 
     // Prompt for gpt-4.1 (Book Selection)
     const selectionPrompt = `\

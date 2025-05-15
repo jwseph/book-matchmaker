@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios, { AxiosError } from 'axios';
 import { Book, QuizQuestion, QuizState, ErrorState } from '@/app/types';
@@ -166,6 +166,7 @@ export default function Quiz() {
   });
 
   const router = useRouter();
+  const isSubmittingRef = useRef(false);
 
   const handleAnswerSubmit = (questionId: string, answer: string | string[]) => {
     setState(prev => {
@@ -175,13 +176,14 @@ export default function Quiz() {
       };
       
       if (prev.currentQuestionIndex === prev.questions.length - 1) {
-        getRecommendations(newAnswers);
-        return {
+        const updatedState = {
           ...prev,
           answers: newAnswers,
           isLoading: true,
           error: null,
         };
+        getRecommendations(newAnswers);
+        return updatedState;
       }
       
       return {
@@ -193,9 +195,13 @@ export default function Quiz() {
   };
 
   const getRecommendations = async (answers: Record<string, string | string[]>) => {
+    if (isSubmittingRef.current) {
+      console.log('[Debug] Submission already in progress, skipping duplicate call to getRecommendations.');
+      return;
+    }
+    isSubmittingRef.current = true;
+
     try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
       const response = await axios.post('/api/recommendations', {
         questions: initialQuestions.map(({id, type, question, options, allowMultiple}) => ({id, type, question, options, allowMultiple})),
         answers,
@@ -207,7 +213,6 @@ export default function Quiz() {
         console.error('API did not return a resultsId');
         setState(prev => ({
           ...prev,
-          isLoading: false,
           error: {
             message: 'Could not generate a shareable link for your results. Please try again.',
             action: 'Retry Fetching Recommendations',
@@ -245,13 +250,15 @@ export default function Quiz() {
       
       setState(prev => ({ 
         ...prev, 
-        isLoading: false,
         error: {
           message: errorMessage,
           action: errorAction,
-          type: errorType,
-        } as ErrorState,
+          type: errorType as ErrorState['type'],
+        }
       }));
+    } finally {
+      isSubmittingRef.current = false;
+      setState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
@@ -305,7 +312,7 @@ export default function Quiz() {
           <div className="absolute top-0 left-0 w-full h-full border-t-4 border-lw-link dark:border-lw-dark-link rounded-full animate-spin"></div>
         </div>
         <p className="font-sans text-lw-muted-text dark:text-lw-dark-muted-text mt-6">
-          Please wait a moment, we're consulting the literary spirits!
+          Please wait a moment, we're consulting the literary spirits! (estimated time: 30 seconds)
         </p>
       </div>
     );
