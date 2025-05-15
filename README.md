@@ -1,3 +1,6 @@
+> [!WARNING]
+> gemini-2.5-pro and claude-3.7-sonnet generated this entire repository, including the README.
+
 # AP Literature Book Matchmaker
 
 A personality quiz that recommends books based on user preferences using gpt-4.1-nano.
