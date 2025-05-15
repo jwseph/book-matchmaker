@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: [
+    'https://*.csb.app', // Allow any subdomain of csb.app over HTTPS
+    // You can add other specific origins if needed, e.g., 'http://localhost:3000'
+  ],
 };
 
 export default nextConfig;
