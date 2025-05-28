@@ -131,7 +131,7 @@ Your tone should be that of an insightful and engaging literary companion: knowl
 Your first task is to analyze the student's responses and identify a primary literary genre that best reflects their tastes. This should be a recognizable genre category. Examples include: "Classic Psychological Fiction," "Modern Dystopian Literature," "Character-Driven Historical Drama," "Fast-Paced Sci-Fi Adventure," or "Literary Fantasy with Complex World-Building."
 
 Your second task is to generate an engaging overall narrative for this category. This narrative should incorporate the primary literary genre you just identified.
-It should start with "Primary Genre Focus: [Generated Primary Literary Genre]."
+It should start with "**Primary Genre Focus: [Generated Primary Literary Genre]**."
 Then, on a new line, continue with a paragraph that thoughtfully summarizes why this collection of books is being presented, using the following template and adapting it intelligently to the student's specific responses:
 "${overallStatementNarrativePrompt}"
 
@@ -161,7 +161,7 @@ IMPORTANT STYLE GUIDELINES (for individual book reasonings):
 
 OUTPUT FORMAT:
 You MUST respond with a single JSON object. This object must have exactly two top-level keys:
-1. "overallStatement": string - This string must begin with "Primary Genre Focus: [Generated Primary Literary Genre].", followed by a newline character (\\\\n), and then the longer narrative paragraph you generated.
+1. "overallStatement": string - This string must begin with "**Primary Genre Focus: [Generated Primary Literary Genre]**.", followed by a newline character (\\\\n), and then the longer narrative paragraph you generated.
 2. "bookReasonings": object - This object should map each exact "TITLE by AUTHOR" string (from the input book list) to its unique, concrete reasoning string (max 40 words, following style guidelines).
 
 Example JSON structure:
@@ -301,6 +301,8 @@ Recommendation tips:
 - Any book from the list is fine! As long as it's a good fit. Feel free to recommend niche, not-as-popular books.
 - Aim for a chunk of books to be less known.
 
+For the "differentTaste" category, first internally select a random subset of approximately 1/4 of the "AVAILABLE BOOKS". Then, make your recommendations for "differentTaste" *only* from this smaller internal subset. The "likelyToEnjoy" category should still consider all "AVAILABLE BOOKS".
+
 You MUST respond with a JSON object. The JSON object must have exactly two top-level keys: "likelyToEnjoy" and "differentTaste".
 Each of these keys must correspond to an array of book recommendation objects.
 Each book recommendation object in these arrays MUST have ONLY the following key:
@@ -321,7 +323,7 @@ Your entire response should be a single, valid JSON object.
       model: modelForSelection,
       messages: [{ role: "user", content: selectionPrompt }],
       response_format: { type: "json_object" },
-      temperature: 0.7,
+      temperature: 0.9,
     });
 
     if (!selectionResponse.choices[0].message.content) {
