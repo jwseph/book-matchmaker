@@ -1,15 +1,28 @@
 export interface Book {
-  rank: number;
+  id: string;
+  rank?: number;
   title: string;
   author: string;
-  description: string;
-  coverUrl: string;
+  description?: string;
   otherNames?: string;
-  links: {
-    bookshop?: string;
+  coverUrl?: string;
+  genres?: string[];
+  tags?: string[];
+  series?: string;
+  seriesOrder?: number;
+  publicationYear?: number;
+  rating?: number;
+  numRatings?: number;
+  pages?: number;
+  isbn?: string;
+  links?: {
     amazon?: string;
+    bookshop?: string;
+    goodreads?: string;
   };
   aiReasoning?: string;
+  isCorrect?: boolean | null;
+  userAnswer?: string | null;
 }
 
 export interface QuizQuestion {

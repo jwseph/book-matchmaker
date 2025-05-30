@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Book } from '@/app/types';
-import { FaBookOpen, FaShoppingCart, FaAmazon } from 'react-icons/fa';
+import { FaBookOpen, FaShoppingCart, FaAmazon, FaGoodreads } from 'react-icons/fa';
 
 interface BookCardProps {
   book: Book;
@@ -99,6 +99,16 @@ export default function BookCard({ book, rank }: BookCardProps) {
               className="font-sans flex items-center justify-center px-3 py-2 text-xs bg-lw-muted-text text-lw-subtle-bg dark:bg-lw-dark-muted-text dark:text-lw-dark-subtle-bg rounded-md hover:bg-opacity-80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lw-link dark:focus:ring-lw-dark-link shadow"
             >
               <FaAmazon className="mr-1.5" /> Amazon
+            </a>
+          )}
+          {book.links?.goodreads && (
+            <a
+              href={book.links.goodreads}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-sans flex items-center justify-center px-3 py-2 text-xs bg-[#382110] text-white dark:bg-[#F4F1EA] dark:text-[#382110] rounded-md hover:bg-opacity-80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#382110] dark:focus:ring-[#F4F1EA] shadow"
+            >
+              <FaGoodreads className="mr-1.5" /> Goodreads
             </a>
           )}
         </div>
