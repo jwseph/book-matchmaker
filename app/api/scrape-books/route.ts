@@ -240,6 +240,7 @@ export async function GET() {
           amazon: "https://www.amazon.com/Lighthouse-Virginia-Woolf/dp/0156907399",
           bookshop: "https://bookshop.org/books/to-the-lighthouse-9780156907392/9780156907392",
         },
+        
       },
     ];
     
