@@ -2,15 +2,15 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
 import { Book, QuizQuestion, BookRecommendation, OpenAIResponse } from '@/app/types';
 
-// --- Prompt Logging Helper ---
-const LOG_FILE_PATH = path.join(process.cwd(), 'logs', 'openai_prompts.log');
+// Import books data statically (Edge Runtime compatible)
+import booksData from '@/data/books.json';
 
-async function logPromptToFile(promptName: string, modelName: string, promptContent: string): Promise<void> {
-  const logEntry = `
+// --- Prompt Logging Helper (Simplified for Edge Runtime) ---
+async function logPromptToConsole(promptName: string, modelName: string, promptContent: string): Promise<void> {
+  // In Edge Runtime, we can only log to console (no file system access)
+  console.log(`
 ================================================================================
 Timestamp: ${new Date().toISOString()}
 Prompt Name: ${promptName}
@@ -19,17 +19,7 @@ Model: ${modelName}
 ${promptContent}
 --- END PROMPT ---
 ================================================================================
-`;
-  try {
-    const logDir = path.dirname(LOG_FILE_PATH);
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-    fs.appendFileSync(LOG_FILE_PATH, logEntry);
-    console.log(`[Debug] Logged prompt: ${promptName} to ${LOG_FILE_PATH}`);
-  } catch (error) {
-    console.error(`[Debug] Error writing prompt to log file ${LOG_FILE_PATH}:`, error);
-  }
+`);
 }
 // --- End Prompt Logging Helper ---
 
@@ -178,7 +168,7 @@ Ensure the keys in the "bookReasonings" object exactly match the "TITLE by AUTHO
 Your entire response must be only this JSON object.
 `;
   const modelForReasoning = "gpt-4.1";
-  await logPromptToFile(`reasoningPrompt_${recommendationType}`, modelForReasoning, reasoningPrompt);
+  await logPromptToConsole(`reasoningPrompt_${recommendationType}`, modelForReasoning, reasoningPrompt);
 
   try {
     console.log(`[Debug] Calling OpenAI API for reasonings for ${recommendationType}. Prompt length: ${reasoningPrompt.length}`);
@@ -246,28 +236,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const booksPath = path.join(process.cwd(), 'data', 'books.json');
-    if (!fs.existsSync(booksPath)) {
-      return NextResponse.json(
-        { 
-          error: 'Book database (books.json) not found.',
-          errorType: 'database',
-        },
-        { status: 500 },
-      );
-    }
-
-    const booksData = fs.readFileSync(booksPath, 'utf-8');
-    if (booksData === '[]') {
+    // Use statically imported books data (Edge Runtime compatible)
+    const allBooks: Book[] = booksData as Book[];
+    
+    if (!allBooks || allBooks.length === 0) {
         return NextResponse.json(
             {
-              error: 'Book database is empty. Please run the book scraper first.',
+              error: 'Book database is empty.',
               errorType: 'database',
             },
             { status: 500 },
           );
     }
-    const allBooks: Book[] = JSON.parse(booksData);
 
     // Prepare data for OpenAI
     const formattedStudentResponses = formatStudentResponses(studentQuestions, studentAnswers);
@@ -319,7 +299,7 @@ Do not add any extra text or explanation outside of the JSON object.
 Your entire response should be a single, valid JSON object.
     `;
     const modelForSelection = "gpt-4.1"; // Consistent with existing code
-    await logPromptToFile("selectionPrompt", modelForSelection, selectionPrompt);
+    await logPromptToConsole("selectionPrompt", modelForSelection, selectionPrompt);
 
     const selectionResponse = await openai.chat.completions.create({
       model: modelForSelection,

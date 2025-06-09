@@ -1,8 +1,8 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+// Import the existing books data (Edge Runtime compatible)
+import booksData from '@/data/books.json';
 
 interface Book {
   rank: number;
@@ -243,22 +243,14 @@ export async function GET() {
       },
     ];
     
-    // Save the books to a JSON file
-    const dataDirectory = path.join(process.cwd(), 'data');
-    
-    // Create the data directory if it doesn't exist
-    if (!fs.existsSync(dataDirectory)) {
-      fs.mkdirSync(dataDirectory, { recursive: true });
-    }
-    
-    fs.writeFileSync(
-      path.join(dataDirectory, 'books.json'),
-      JSON.stringify(books, null, 2)
-    );
+    // In Edge Runtime, return the existing books data instead of writing to filesystem
+    // The books data is already available via static import
+    const existingBooks = booksData as unknown as Book[];
     
     return NextResponse.json({ 
       success: true, 
-      message: `Successfully saved ${books.length} books to the database` 
+      message: `Books database contains ${existingBooks.length} books`,
+      books: existingBooks
     });
   } catch (error) {
     console.error('Error creating book data:', error);
